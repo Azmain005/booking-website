@@ -8,13 +8,29 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_BASE_URL ??
-  process.env.NEXT_PUBLIC_APP_URL ??
-  "http://localhost:3000";
+function getSiteUrl(): string {
+  const raw = (
+    process.env.NEXT_PUBLIC_BASE_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000"
+  ).trim();
+
+  // Vercel env vars are sometimes entered as "example.com" without scheme.
+  // new URL("example.com") throws, so normalize to https://.
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `https://${raw.replace(/^\/+/, "")}`;
+}
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: (() => {
+    try {
+      return new URL(siteUrl);
+    } catch {
+      return new URL("http://localhost:3000");
+    }
+  })(),
   title: {
     default: "Serene Wellness | Premium Massage & Wellness Treatments",
     template: "%s | Serene Wellness",

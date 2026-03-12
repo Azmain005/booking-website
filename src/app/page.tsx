@@ -3,6 +3,8 @@ import { ServiceCard } from "@/components/service-card";
 import { prisma } from "@/lib/prisma";
 import { Sparkles } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const services = await prisma.service.findMany({
     orderBy: { createdAt: "asc" },
