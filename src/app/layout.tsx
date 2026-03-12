@@ -1,31 +1,70 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Open_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Serene Wellness | Book Your Treatment",
+    default: "Serene Wellness | Premium Massage & Wellness Treatments",
     template: "%s | Serene Wellness",
   },
   description:
-    "Book premium massage and wellness treatments online. Instant confirmation, secure payments.",
-  keywords: ["massage", "wellness", "booking", "spa", "therapy"],
+    "Book premium massage and wellness treatments online with instant confirmation and secure payment. Professional therapeutic services including deep tissue, aromatherapy, hot stone, and reflexology.",
+  keywords: [
+    "massage booking",
+    "wellness treatments",
+    "spa services",
+    "therapeutic massage",
+    "online booking",
+    "deep tissue massage",
+    "aromatherapy",
+    "hot stone therapy",
+    "reflexology",
+    "wellness center",
+  ],
+  authors: [{ name: "Serene Wellness" }],
+  category: "Health & Wellness",
   openGraph: {
-    title: "Serene Wellness",
+    title: "Serene Wellness | Premium Massage & Wellness Treatments",
     description:
-      "Book premium massage and wellness treatments online.",
+      "Book premium massage and wellness treatments online with instant confirmation and secure payment. Professional therapeutic services for your wellness journey.",
     type: "website",
+    locale: "en_US",
+    siteName: "Serene Wellness",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Serene Wellness - Premium Massage & Wellness Treatments",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Serene Wellness | Premium Massage & Wellness Treatments",
+    description:
+      "Book premium massage and wellness treatments online with instant confirmation and secure payment.",
+    images: ["/og-image.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    google: "your-google-site-verification-code", // Replace with actual verification code
   },
 };
 
@@ -37,7 +76,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${openSans.variable} antialiased min-h-screen bg-background`}
       >
         {children}
         <Toaster richColors position="top-right" />
@@ -45,4 +84,3 @@ export default function RootLayout({
     </html>
   );
 }
-

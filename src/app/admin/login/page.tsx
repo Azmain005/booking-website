@@ -11,7 +11,19 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Admin Login | Serene Wellness",
+  title: "Admin Login",
+  description:
+    "Administrative access to manage bookings and view business analytics.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    title: "Admin Login | Serene Wellness",
+    description:
+      "Administrative access to manage bookings and view business analytics.",
+    type: "website",
+  },
 };
 
 export default function AdminLoginPage() {

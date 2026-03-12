@@ -8,68 +8,133 @@ export default async function HomePage() {
     orderBy: { createdAt: "asc" },
   });
 
+  // Structured data for SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Serene Wellness",
+    description:
+      "Premium massage and wellness treatments with online booking, instant confirmation, and secure payments.",
+    url: process.env.NEXT_PUBLIC_BASE_URL || "https://serenewellness.com",
+    telephone: "+1-555-WELLNESS",
+    priceRange: "$$",
+    serviceType: ["Massage Therapy", "Wellness Treatments", "Spa Services"],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Wellness Services",
+      itemListElement: services.map((service, index) => ({
+        "@type": "Offer",
+        name: service.name,
+        description: service.description,
+        price: (service.price / 100).toFixed(2),
+        priceCurrency: "USD",
+        availability: "https://schema.org/InStock",
+        position: index + 1,
+      })),
+    },
+    "@graph": [
+      {
+        "@type": "WebSite",
+        name: "Serene Wellness",
+        url: process.env.NEXT_PUBLIC_BASE_URL || "https://serenewellness.com",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${process.env.NEXT_PUBLIC_BASE_URL || "https://serenewellness.com"}/?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
       <Header />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/30 border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary font-medium mb-6">
-              <Sparkles className="h-3.5 w-3.5" />
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background border-b border-border/50">
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center relative">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 text-sm text-primary font-semibold mb-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
+              <Sparkles className="h-4 w-4" />
               Premium Wellness Treatments
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-tight mb-8">
               Restore Your{" "}
-              <span className="text-primary">Balance &amp; Wellbeing</span>
+              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Balance & Wellbeing
+              </span>
             </h1>
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="mt-6 text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
               Book a professional massage or wellness treatment in seconds.
-              Secure payment, instant confirmation, and a rejuvenating experience await.
+              Secure payment, instant confirmation, and a rejuvenating
+              experience await.
             </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5">✅ Instant booking</span>
-              <span className="flex items-center gap-1.5">🔒 Secure payment</span>
-              <span className="flex items-center gap-1.5">📧 Email confirmation</span>
+            <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
+              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                <span className="text-green-500">✓</span> Instant booking
+              </span>
+              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                <span className="text-blue-500">🔒</span> Secure payment
+              </span>
+              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                <span className="text-purple-500">📧</span> Email confirmation
+              </span>
             </div>
           </div>
         </section>
 
         {/* Services Grid */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="mb-16 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
               Our Services
             </h2>
-            <p className="mt-2 text-muted-foreground">
-              Choose from our range of expertly crafted wellness treatments.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Choose from our range of expertly crafted wellness treatments,
+              each designed to restore balance and rejuvenate your mind and
+              body.
             </p>
           </div>
 
           {services.length === 0 ? (
-            <div className="text-center py-20 text-muted-foreground">
-              <p className="text-lg">No services available yet.</p>
-              <p className="text-sm mt-1">
-                Run{" "}
-                <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
+            <div className="text-center py-32">
+              <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-3xl border border-border/50 p-12 max-w-md mx-auto">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Sparkles className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-xl font-medium text-foreground mb-2">
+                  No services available yet
+                </p>
+                <p className="text-muted-foreground mb-6">
+                  We&apos;re preparing our wellness treatments for you.
+                </p>
+                <code className="bg-muted border border-border px-4 py-2 rounded-lg text-sm font-mono">
                   npm run db:seed
-                </code>{" "}
-                to add services.
-              </p>
+                </code>
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <ServiceCard
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {services.map((service, index) => (
+                <div
                   key={service.id}
-                  id={service.id}
-                  name={service.name}
-                  description={service.description}
-                  price={service.price}
-                  duration={service.duration}
-                  imageUrl={service.imageUrl}
-                />
+                  className="animate-in fade-in slide-in-from-bottom-4"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <ServiceCard
+                    id={service.id}
+                    name={service.name}
+                    description={service.description}
+                    price={service.price}
+                    duration={service.duration}
+                    imageUrl={service.imageUrl}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -77,18 +142,28 @@ export default async function HomePage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <p>© {new Date().getFullYear()} Serene Wellness. All rights reserved.</p>
-            <p className="flex items-center gap-1.5">
-              Secured by{" "}
-              <span className="font-semibold text-foreground">Stripe</span>
-            </p>
+      <footer className="border-t border-border bg-gradient-to-t from-muted/50 to-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <p>
+                © {new Date().getFullYear()} Serene Wellness. All rights
+                reserved.
+              </p>
+              <div className="hidden sm:block w-1 h-1 bg-muted-foreground/30 rounded-full" />
+              <p className="text-xs">
+                Crafted with care for your wellness journey
+              </p>
+            </div>
+            <div className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50">
+              <span className="text-xs">Secured by</span>
+              <span className="font-semibold text-foreground bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+                Stripe
+              </span>
+            </div>
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

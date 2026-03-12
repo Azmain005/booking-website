@@ -1,10 +1,12 @@
 "use client";
 
-import { Loader2, LogOut, RefreshCcw } from "lucide-react";
+import { Loader2, LogOut, RefreshCcw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -80,27 +82,63 @@ export function BookingsTable({
   const [rows, setRows] = useState<AdminBookingRow[]>(initialRows);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
   const sorted = useMemo(() => {
-    return [...rows].sort(
+    let filtered = [...rows];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (row) =>
+          row.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          row.customerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          row.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          row.id.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== "ALL") {
+      filtered = filtered.filter((row) => row.status === statusFilter);
+    }
+
+    return filtered.sort(
       (a, b) =>
         new Date(b.createdAtIso).getTime() - new Date(a.createdAtIso).getTime(),
     );
-  }, [rows]);
+  }, [rows, searchTerm, statusFilter]);
 
   async function logout() {
-    await fetch("/api/admin/auth", { method: "DELETE" });
-    window.location.href = "/admin/login";
+    const toastId = toast.loading("Signing out...");
+    try {
+      await fetch("/api/admin/auth", { method: "DELETE" });
+      toast.dismiss(toastId);
+      toast.success("Signed out successfully");
+      window.location.href = "/admin/login";
+    } catch {
+      toast.dismiss(toastId);
+      toast.error("Failed to sign out");
+    }
   }
 
   async function refresh() {
     setRefreshing(true);
+    const toastId = toast.loading("Refreshing bookings...");
     try {
       const res = await fetch("/api/admin/bookings", { method: "GET" });
       const data = await res.json();
       if (res.ok && Array.isArray(data.rows)) {
         setRows(data.rows);
+        toast.dismiss(toastId);
+        toast.success(`Refreshed ${data.rows.length} bookings`);
+      } else {
+        throw new Error("Invalid response");
       }
+    } catch {
+      toast.dismiss(toastId);
+      toast.error("Failed to refresh bookings");
     } finally {
       setRefreshing(false);
     }
@@ -108,6 +146,7 @@ export function BookingsTable({
 
   async function updateStatus(id: string, status: Status) {
     setSavingId(id);
+    const toastId = toast.loading(`Updating status to ${status}...`);
     try {
       const res = await fetch(`/api/admin/bookings/${id}`, {
         method: "PATCH",
@@ -117,8 +156,7 @@ export function BookingsTable({
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        alert(data?.error ?? "Update failed");
-        return;
+        throw new Error(data?.error ?? "Update failed");
       }
 
       setRows((prev) =>
@@ -126,44 +164,121 @@ export function BookingsTable({
           r.id === id ? { ...r, status: data.booking.status } : r,
         ),
       );
+
+      toast.dismiss(toastId);
+      toast.success(`Status updated to ${status}`, {
+        description: `Booking ${id} has been updated`,
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : "Update failed";
+      toast.dismiss(toastId);
+      toast.error("Failed to update status", {
+        description: errorMsg,
+      });
     } finally {
       setSavingId(null);
     }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">
-          {rows.length} booking{rows.length === 1 ? "" : "s"}
+    <div className="space-y-6">
+      {/* Header with stats */}
+      <div className="flex flex-col gap-4 p-6 bg-gradient-to-r from-muted/50 to-background border border-border/50 rounded-2xl">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-foreground">
+              {sorted.length} booking{sorted.length === 1 ? "" : "s"}
+              {searchTerm || statusFilter !== "ALL" ? (
+                <span className="text-sm text-muted-foreground font-normal">
+                  {" "}
+                  ({rows.length} total)
+                </span>
+              ) : null}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Manage appointments and customer information
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={refresh}
+              disabled={refreshing}
+              className="gap-2 hover:bg-muted/80"
+            >
+              {refreshing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4" />
+              )}
+              <span>Refresh</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={logout}
+              className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive/50"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={refresh} disabled={refreshing}>
-            {refreshing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCcw className="h-4 w-4" />
-            )}
-            <span className="ml-2">Refresh</span>
-          </Button>
-          <Button variant="outline" onClick={logout}>
-            <LogOut className="h-4 w-4" />
-            <span className="ml-2">Logout</span>
-          </Button>
+
+        {/* Search and filter controls */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, service, or booking ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => setStatusFilter(value || "ALL")}
+          >
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Status</SelectItem>
+              {STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card overflow-x-auto">
+      <div className="rounded-2xl border border-border/50 bg-card shadow-lg overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Date/Time</TableHead>
-              <TableHead>Payment</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Manage</TableHead>
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="font-semibold text-foreground py-4">
+                Customer
+              </TableHead>
+              <TableHead className="font-semibold text-foreground py-4">
+                Service
+              </TableHead>
+              <TableHead className="font-semibold text-foreground py-4">
+                Date/Time
+              </TableHead>
+              <TableHead className="font-semibold text-foreground py-4">
+                Payment
+              </TableHead>
+              <TableHead className="font-semibold text-foreground py-4">
+                Status
+              </TableHead>
+              <TableHead className="font-semibold text-foreground py-4">
+                Created
+              </TableHead>
+              <TableHead className="text-right font-semibold text-foreground py-4">
+                Manage
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -176,37 +291,55 @@ export function BookingsTable({
               ) as Status;
 
               return (
-                <TableRow key={row.id}>
-                  <TableCell>
-                    <div className="font-medium">{row.customerName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {row.customerEmail}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground mt-1 font-mono">
-                      {row.id}
+                <TableRow
+                  key={row.id}
+                  className="hover:bg-muted/30 transition-colors duration-200"
+                >
+                  <TableCell className="py-4">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-base">
+                        {row.customerName}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {row.customerEmail}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono bg-muted/50 rounded px-2 py-1 inline-block">
+                        {row.id}
+                      </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <div className="font-medium">{row.serviceName}</div>
+                  <TableCell className="py-4">
+                    <div className="font-semibold text-base">
+                      {row.serviceName}
+                    </div>
                   </TableCell>
 
-                  <TableCell>{formatDateTime(row.bookingDateIso)}</TableCell>
+                  <TableCell className="py-4">
+                    <div className="font-medium">
+                      {formatDateTime(row.bookingDateIso)}
+                    </div>
+                  </TableCell>
 
-                  <TableCell>{paymentBadge(row)}</TableCell>
+                  <TableCell className="py-4">{paymentBadge(row)}</TableCell>
 
-                  <TableCell>
-                    <Badge variant={statusBadgeVariant(row.status)}>
+                  <TableCell className="py-4">
+                    <Badge
+                      variant={statusBadgeVariant(row.status)}
+                      className="font-medium"
+                    >
                       {row.status}
                     </Badge>
                   </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    {formatDateTime(row.createdAtIso)}
+                  <TableCell className="text-muted-foreground py-4">
+                    <div className="text-sm">
+                      {formatDateTime(row.createdAtIso)}
+                    </div>
                   </TableCell>
 
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
+                  <TableCell className="text-right py-4">
+                    <div className="flex items-center justify-end gap-3">
                       <Select
                         value={currentStatus}
                         onValueChange={(val) =>
@@ -215,20 +348,28 @@ export function BookingsTable({
                         disabled={disabled}
                       >
                         <SelectTrigger
-                          className="w-42.5"
+                          className="w-44 h-9"
                           aria-label="Update status"
                         >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {STATUSES.map((s) => (
-                            <SelectItem key={s} value={s}>
+                            <SelectItem
+                              key={s}
+                              value={s}
+                              className="font-medium"
+                            >
                               {s}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      {disabled && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {disabled && (
+                        <div className="flex items-center justify-center w-9 h-9">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -238,10 +379,13 @@ export function BookingsTable({
         </Table>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Note: Bookings are only marked <strong>CONFIRMED</strong> by verified
-        Stripe webhooks.
-      </p>
+      <div className="bg-muted/30 rounded-xl p-4">
+        <p className="text-sm text-muted-foreground flex items-center gap-2">
+          <span className="text-blue-500">ℹ️</span>
+          <strong>Note:</strong> Bookings are only marked{" "}
+          <strong>CONFIRMED</strong> by verified Stripe webhooks.
+        </p>
+      </div>
     </div>
   );
 }

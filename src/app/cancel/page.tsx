@@ -6,7 +6,19 @@ import { Header } from "@/components/header";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Checkout Cancelled | Serene Wellness",
+  title: "Checkout Cancelled",
+  description:
+    "Your booking checkout was cancelled. You can try booking again or contact us for assistance.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+  openGraph: {
+    title: "Checkout Cancelled | Serene Wellness",
+    description:
+      "Your booking checkout was cancelled. You can try booking again or contact us for assistance.",
+    type: "website",
+  },
 };
 
 interface CancelPageProps {
@@ -30,33 +42,33 @@ export default async function CancelPage({ searchParams }: CancelPageProps) {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md space-y-6 text-center">
+      <main className="flex-1 flex items-center justify-center px-4 py-20">
+        <div className="w-full max-w-lg space-y-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* Icon */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-2">
-            <XCircle className="h-8 w-8 text-muted-foreground" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-muted/80 to-muted/60 mb-4 shadow-lg">
+            <XCircle className="h-10 w-10 text-muted-foreground" />
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">
+          <div className="space-y-6">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
               Checkout cancelled
             </h1>
-            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
               No payment was taken and your booking has been cancelled. You can
               start a new booking anytime.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link
               href="/"
-              className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding bg-primary text-primary-foreground px-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-primary/80 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl border-2 border-transparent bg-primary text-primary-foreground px-8 text-base font-semibold whitespace-nowrap transition-all duration-200 outline-none select-none hover:bg-primary/90 focus-visible:border-ring focus-visible:ring-4 focus-visible:ring-ring/20 shadow-md hover:shadow-lg"
             >
               Browse services
             </Link>
             <Link
               href="/"
-              className="inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background px-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="inline-flex h-12 shrink-0 items-center justify-center rounded-xl border-2 border-border bg-background px-8 text-base font-semibold whitespace-nowrap transition-all duration-200 outline-none select-none hover:bg-muted hover:border-primary/50 hover:text-foreground focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 shadow-sm hover:shadow-md"
             >
               Try again
             </Link>

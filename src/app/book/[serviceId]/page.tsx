@@ -40,22 +40,22 @@ export default async function BookPage({ params }: BookPageProps) {
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         {/* Back link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all duration-200 mb-12 group bg-muted/50 hover:bg-muted rounded-full px-4 py-2"
         >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
           Back to services
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* ── LEFT: Service Detail ── */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Image */}
             {service.imageUrl && (
-              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-md">
+              <div className="relative aspect-[4/3] w-full rounded-3xl overflow-hidden shadow-2xl">
                 <Image
                   src={service.imageUrl}
                   alt={service.name}
@@ -64,77 +64,106 @@ export default async function BookPage({ params }: BookPageProps) {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 text-white">
+                  <div className="bg-white/20 backdrop-blur-md rounded-full px-4 py-2">
+                    <span className="text-sm font-semibold">
+                      Premium Treatment
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Meta */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant="secondary" className="text-xs gap-1">
-                  <Clock className="h-3 w-3" />
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Badge
+                  variant="secondary"
+                  className="text-sm gap-2 py-1.5 px-3"
+                >
+                  <Clock className="h-4 w-4" />
                   {formatDuration(service.duration)}
                 </Badge>
-                <Badge variant="secondary" className="text-xs gap-1">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <Badge
+                  variant="secondary"
+                  className="text-sm gap-2 py-1.5 px-3"
+                >
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                   Top rated
                 </Badge>
               </div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                {service.name}
-              </h1>
-              <p className="mt-3 text-muted-foreground leading-relaxed">
-                {service.description}
-              </p>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  {service.name}
+                </h1>
+                <p className="text-lg text-muted-foreground leading-relaxed">
+                  {service.description}
+                </p>
+              </div>
             </div>
 
             <Separator />
 
             {/* Pricing card */}
-            <div className="rounded-xl border bg-muted/40 p-5 space-y-3">
-              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Session details
+            <div className="rounded-2xl border bg-gradient-to-br from-muted/30 to-muted/50 backdrop-blur-sm p-8 space-y-6 shadow-lg">
+              <h2 className="text-lg font-bold text-foreground">
+                Session Details
               </h2>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Duration</span>
-                <span className="text-sm font-medium">
-                  {formatDuration(service.duration)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Price</span>
-                <span className="text-xl font-bold text-primary">
-                  {formatCurrency(service.price)}
-                </span>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Duration
+                  </span>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatDuration(service.duration)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground font-medium">
+                    Price
+                  </span>
+                  <span className="text-2xl font-bold text-primary">
+                    {formatCurrency(service.price)}
+                  </span>
+                </div>
               </div>
               <Separator />
-              <ul className="space-y-1.5 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Instant booking
-                  confirmation
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-green-500 text-xs font-bold">✓</span>
+                  </div>
+                  Instant booking confirmation
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Secure payment via
-                  Stripe
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <div className="w-5 h-5 bg-blue-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-blue-500 text-xs font-bold">✓</span>
+                  </div>
+                  Secure payment via Stripe
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Free cancellation
-                  (24h notice)
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <div className="w-5 h-5 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-amber-500 text-xs font-bold">✓</span>
+                  </div>
+                  Free cancellation (24h notice)
                 </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Email confirmation
-                  sent
+                <li className="flex items-center gap-3 text-muted-foreground">
+                  <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-purple-500 text-xs font-bold">✓</span>
+                  </div>
+                  Email confirmation sent
                 </li>
               </ul>
             </div>
           </div>
 
           {/* ── RIGHT: Booking Form ── */}
-          <div className="lg:sticky lg:top-24">
-            <div className="rounded-2xl border bg-card shadow-sm p-6 sm:p-8">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold">Book your session</h2>
-                <p className="text-sm text-muted-foreground mt-1">
+          <div className="lg:sticky lg:top-32">
+            <div className="rounded-3xl border-2 border-border/50 bg-card shadow-2xl p-8 sm:p-10 backdrop-blur-sm">
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold mb-3">Book your session</h2>
+                <p className="text-muted-foreground">
                   Fill in your details and choose a time. Payment is collected
                   at the next step.
                 </p>

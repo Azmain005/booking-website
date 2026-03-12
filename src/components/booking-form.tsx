@@ -29,6 +29,7 @@ import {
   BookingFormValues,
   TIME_SLOTS,
 } from "@/lib/validations";
+import { toast } from "sonner";
 
 interface Service {
   id: string;
@@ -89,6 +90,12 @@ export function BookingForm({ service }: BookingFormProps) {
 
   async function onSubmit(values: BookingFormValues) {
     setServerError(null);
+
+    // Show loading toast
+    const toastId = toast.loading("Creating your booking...", {
+      description: "Preparing secure checkout with Stripe",
+    });
+
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -101,42 +108,56 @@ export function BookingForm({ service }: BookingFormProps) {
       if (!res.ok) {
         const msg = data?.error ?? `Request failed with status ${res.status}`;
         setServerError(msg);
+        toast.dismiss(toastId);
+        toast.error("Booking failed", {
+          description: msg,
+        });
         return;
       }
+
+      // Show success and redirect
+      toast.dismiss(toastId);
+      toast.success("Redirecting to checkout...", {
+        description: "Taking you to Stripe's secure payment page",
+      });
 
       // Hard-navigate to Stripe's hosted checkout page.
       // router.push() won't work here because it's an external URL.
       window.location.href = data.url;
-    } catch {
-      setServerError(
-        "Network error. Please check your connection and try again.",
-      );
+    } catch (error) {
+      toast.dismiss(toastId);
+      const errorMsg =
+        "Network error. Please check your connection and try again.";
+      setServerError(errorMsg);
+      toast.error("Connection failed", {
+        description: errorMsg,
+      });
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-8">
       {/* Hidden service ID */}
       <input type="hidden" {...register("serviceId")} />
 
       {/* Service summary banner */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-start gap-3">
-        <div className="rounded-lg bg-primary/10 p-2 mt-0.5">
-          <CalendarDays className="h-4 w-4 text-primary" />
+      <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-primary/5 p-6 flex items-start gap-4 shadow-sm">
+        <div className="rounded-xl bg-primary/20 p-3 mt-1">
+          <CalendarDays className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground">
+          <p className="text-lg font-bold text-foreground mb-2">
             {service.name}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
             {service.description}
           </p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs">
-            <span className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-3 w-3" />
+          <div className="flex flex-wrap gap-4 text-sm">
+            <span className="flex items-center gap-2 text-muted-foreground bg-background/50 rounded-full px-3 py-1.5">
+              <Clock className="h-4 w-4" />
               {formatDuration(service.duration)}
             </span>
-            <span className="font-semibold text-primary">
+            <span className="font-bold text-primary bg-primary/10 rounded-full px-3 py-1.5">
               {formatCurrency(service.price)}
             </span>
           </div>
@@ -144,13 +165,13 @@ export function BookingForm({ service }: BookingFormProps) {
       </div>
 
       {/* Full Name */}
-      <div className="space-y-1.5">
+      <div className="space-y-3">
         <Label
           htmlFor="customerName"
-          className="flex items-center gap-1.5 text-sm font-medium"
+          className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
-          <User className="h-3.5 w-3.5 text-muted-foreground" />
-          Full Name <span className="text-destructive">*</span>
+          <User className="h-4 w-4 text-primary" />
+          Full Name <span className="text-destructive text-lg">*</span>
         </Label>
         <Input
           id="customerName"
@@ -158,23 +179,29 @@ export function BookingForm({ service }: BookingFormProps) {
           autoComplete="name"
           placeholder="Jane Smith"
           aria-invalid={!!errors.customerName}
+          className={`h-12 text-base transition-all duration-200 ${
+            errors.customerName
+              ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-destructive/30"
+              : "focus:border-primary focus:ring-primary/30 hover:border-border"
+          }`}
           {...register("customerName")}
         />
         {errors.customerName && (
-          <p className="text-xs text-destructive mt-1">
-            {errors.customerName.message}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+            <span className="text-destructive">⚠️</span>
+            <p>{errors.customerName.message}</p>
+          </div>
         )}
       </div>
 
       {/* Email */}
-      <div className="space-y-1.5">
+      <div className="space-y-3">
         <Label
           htmlFor="customerEmail"
-          className="flex items-center gap-1.5 text-sm font-medium"
+          className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
-          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
-          Email Address <span className="text-destructive">*</span>
+          <Mail className="h-4 w-4 text-primary" />
+          Email Address <span className="text-destructive text-lg">*</span>
         </Label>
         <Input
           id="customerEmail"
@@ -182,25 +209,31 @@ export function BookingForm({ service }: BookingFormProps) {
           autoComplete="email"
           placeholder="jane@example.com"
           aria-invalid={!!errors.customerEmail}
+          className={`h-12 text-base transition-all duration-200 ${
+            errors.customerEmail
+              ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-destructive/30"
+              : "focus:border-primary focus:ring-primary/30 hover:border-border"
+          }`}
           {...register("customerEmail")}
         />
         {errors.customerEmail && (
-          <p className="text-xs text-destructive mt-1">
-            {errors.customerEmail.message}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+            <span className="text-destructive">⚠️</span>
+            <p>{errors.customerEmail.message}</p>
+          </div>
         )}
       </div>
 
       {/* Date + Time — side by side on sm+ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Preferred Date */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <Label
             htmlFor="bookingDate"
-            className="flex items-center gap-1.5 text-sm font-medium"
+            className="flex items-center gap-2 text-sm font-semibold text-foreground"
           >
-            <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-            Preferred Date <span className="text-destructive">*</span>
+            <CalendarDays className="h-4 w-4 text-primary" />
+            Preferred Date <span className="text-destructive text-lg">*</span>
           </Label>
           <Input
             id="bookingDate"
@@ -208,23 +241,29 @@ export function BookingForm({ service }: BookingFormProps) {
             min={getMinDate()}
             max={getMaxDate()}
             aria-invalid={!!errors.bookingDate}
+            className={`h-12 text-base transition-all duration-200 ${
+              errors.bookingDate
+                ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-destructive/30"
+                : "focus:border-primary focus:ring-primary/30 hover:border-border"
+            }`}
             {...register("bookingDate")}
           />
           {errors.bookingDate && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.bookingDate.message}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <span className="text-destructive">⚠️</span>
+              <p>{errors.bookingDate.message}</p>
+            </div>
           )}
         </div>
 
         {/* Preferred Time */}
-        <div className="space-y-1.5">
+        <div className="space-y-3">
           <Label
             htmlFor="bookingTime"
-            className="flex items-center gap-1.5 text-sm font-medium"
+            className="flex items-center gap-2 text-sm font-semibold text-foreground"
           >
-            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-            Preferred Time <span className="text-destructive">*</span>
+            <Clock className="h-4 w-4 text-primary" />
+            Preferred Time <span className="text-destructive text-lg">*</span>
           </Label>
           <Select
             value={selectedTime ?? ""}
@@ -237,7 +276,11 @@ export function BookingForm({ service }: BookingFormProps) {
             <SelectTrigger
               id="bookingTime"
               aria-invalid={!!errors.bookingTime}
-              className="w-full"
+              className={`h-12 text-base transition-all duration-200 ${
+                errors.bookingTime
+                  ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-destructive/30"
+                  : "focus:border-primary focus:ring-primary/30 hover:border-border"
+              }`}
             >
               <SelectValue placeholder="Select a time" />
             </SelectTrigger>
@@ -250,36 +293,39 @@ export function BookingForm({ service }: BookingFormProps) {
             </SelectContent>
           </Select>
           {errors.bookingTime && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.bookingTime.message}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+              <span className="text-destructive">⚠️</span>
+              <p>{errors.bookingTime.message}</p>
+            </div>
           )}
         </div>
       </div>
 
       {/* Notes */}
-      <div className="space-y-1.5">
+      <div className="space-y-3">
         <Label
           htmlFor="notes"
-          className="flex items-center gap-1.5 text-sm font-medium"
+          className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
-          <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+          <MessageSquare className="h-4 w-4 text-primary" />
           Additional Notes{" "}
-          <span className="text-muted-foreground font-normal text-xs">
+          <span className="text-muted-foreground font-normal text-sm">
             (optional)
           </span>
         </Label>
         <Textarea
           id="notes"
-          rows={3}
+          rows={4}
           placeholder="Any health conditions, preferences, or special requests we should know about…"
           aria-invalid={!!errors.notes}
+          className="text-base resize-none transition-all duration-200 focus:border-primary focus:ring-primary/30 hover:border-border"
           {...register("notes")}
         />
         {errors.notes && (
-          <p className="text-xs text-destructive mt-1">
-            {errors.notes.message}
-          </p>
+          <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+            <span className="text-destructive">⚠️</span>
+            <p>{errors.notes.message}</p>
+          </div>
         )}
       </div>
 
@@ -287,9 +333,15 @@ export function BookingForm({ service }: BookingFormProps) {
       {serverError && (
         <div
           role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 backdrop-blur-sm px-6 py-4 text-sm text-destructive shadow-lg"
         >
-          {serverError}
+          <div className="flex items-center gap-3">
+            <span className="text-lg">🚨</span>
+            <div>
+              <p className="font-semibold mb-1">Something went wrong</p>
+              <p>{serverError}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -297,22 +349,40 @@ export function BookingForm({ service }: BookingFormProps) {
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full h-12 text-base font-semibold"
+        className="w-full h-14 text-lg font-bold shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-primary via-primary to-primary/90 hover:from-primary/90 hover:via-primary hover:to-primary disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Redirecting to Stripe…
-          </>
-        ) : (
-          <>Pay &amp; Book — {formatCurrency(service.price)}</>
-        )}
+        <div className="flex items-center justify-center gap-3">
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Redirecting to Stripe…</span>
+            </>
+          ) : (
+            <>
+              <span>Pay & Book — {formatCurrency(service.price)}</span>
+            </>
+          )}
+        </div>
       </Button>
 
-      <p className="text-center text-xs text-muted-foreground">
-        You&apos;ll be taken to Stripe&apos;s secure checkout. Your slot is{" "}
-        <strong>reserved</strong> once payment is complete.
-      </p>
+      <div className="text-center space-y-2">
+        <p className="text-sm text-muted-foreground">
+          You’ll be taken to Stripe’s secure checkout. Your slot is{" "}
+          <strong className="text-foreground">reserved</strong> once payment is
+          complete.
+        </p>
+        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="text-green-500">✓</span> SSL encrypted
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="text-blue-500">✓</span> PCI compliant
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="text-purple-500">✓</span> Instant confirmation
+          </span>
+        </div>
+      </div>
     </form>
   );
 }
