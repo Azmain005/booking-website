@@ -9,7 +9,6 @@ import {
   MessageSquare,
   User,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -66,7 +65,6 @@ function getMaxDate() {
 }
 
 export function BookingForm({ service }: BookingFormProps) {
-  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -92,7 +90,7 @@ export function BookingForm({ service }: BookingFormProps) {
   async function onSubmit(values: BookingFormValues) {
     setServerError(null);
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
@@ -106,8 +104,9 @@ export function BookingForm({ service }: BookingFormProps) {
         return;
       }
 
-      // Redirect to confirmation page with booking ID
-      router.push(`/book/confirmation?id=${data.booking.id}`);
+      // Hard-navigate to Stripe's hosted checkout page.
+      // router.push() won't work here because it's an external URL.
+      window.location.href = data.url;
     } catch {
       setServerError(
         "Network error. Please check your connection and try again.",
@@ -303,16 +302,16 @@ export function BookingForm({ service }: BookingFormProps) {
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Saving your booking…
+            Redirecting to Stripe…
           </>
         ) : (
-          <>Confirm Booking — {formatCurrency(service.price)}</>
+          <>Pay &amp; Book — {formatCurrency(service.price)}</>
         )}
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
-        Your booking will be held as <strong>pending</strong> until payment is
-        completed. You can cancel at any time before your appointment.
+        You&apos;ll be taken to Stripe&apos;s secure checkout. Your slot is{" "}
+        <strong>reserved</strong> once payment is complete.
       </p>
     </form>
   );

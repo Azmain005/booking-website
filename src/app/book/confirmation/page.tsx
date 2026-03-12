@@ -4,10 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Header } from "@/components/header";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/prisma";
-import { cn, formatCurrency, formatDuration } from "@/lib/utils";
+import { formatCurrency, formatDuration } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed | Serene Wellness",
@@ -149,10 +149,7 @@ export default async function ConfirmationPage({
             </Button>
             <Link
               href="/"
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "w-full h-9 inline-flex items-center justify-center",
-              )}
+              className="inline-flex h-9 w-full shrink-0 items-center justify-center rounded-lg border border-border bg-background px-2.5 text-sm font-medium whitespace-nowrap transition-all outline-none select-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               Back to services
             </Link>

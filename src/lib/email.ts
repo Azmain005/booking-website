@@ -20,6 +20,10 @@ export async function sendBookingConfirmationEmail({
   amount,
   bookingId,
 }: BookingConfirmationEmailProps) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY environment variable is not set");
+  }
+
   const formattedDate = format(
     new Date(bookingDate),
     "EEEE, MMMM d, yyyy 'at' h:mm a",
