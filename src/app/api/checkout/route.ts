@@ -63,9 +63,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const appUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ?? process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
-      throw new Error("NEXT_PUBLIC_APP_URL environment variable is not set");
+      throw new Error(
+        "NEXT_PUBLIC_BASE_URL (or NEXT_PUBLIC_APP_URL) environment variable is not set",
+      );
     }
 
     // ── 5. Create Stripe Checkout Session ────────────────────────────────────

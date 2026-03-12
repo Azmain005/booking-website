@@ -8,7 +8,13 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_BASE_URL ??
+  process.env.NEXT_PUBLIC_APP_URL ??
+  "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Serene Wellness | Premium Massage & Wellness Treatments",
     template: "%s | Serene Wellness",

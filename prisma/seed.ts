@@ -4,7 +4,10 @@ import { PrismaClient } from "../src/generated/prisma";
 
 dotenv.config();
 
-const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
+const adapter = new PrismaLibSql({
+  url: process.env.DATABASE_URL!,
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+});
 const prisma = new PrismaClient({
   adapter,
 } as unknown as ConstructorParameters<typeof PrismaClient>[0]);

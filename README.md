@@ -3,7 +3,7 @@
 A modern, production-ready booking website for wellness services with integrated payments, email confirmations, and administrative management.
 
 ![Serene Wellness](https://img.shields.io/badge/Status-Production%20Ready-green?style=flat-square)
-![Next.js](https://img.shields.io/badge/Next.js-15+-black?style=flat-square&logo=nextdotjs)
+![Next.js](https://img.shields.io/badge/Next.js-16+-black?style=flat-square&logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue?style=flat-square&logo=typescript)
 ![Stripe](https://img.shields.io/badge/Stripe-Integrated-purple?style=flat-square&logo=stripe)
 
@@ -49,7 +49,6 @@ A modern, production-ready booking website for wellness services with integrated
 - **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
 - **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
 - **[shadcn/ui](https://ui.shadcn.com/)** - Modern component library
-- **[Framer Motion](https://www.framer.com/motion/)** - Smooth animations
 - **[Sonner](https://sonner.emilkowal.ski/)** - Toast notifications
 
 ### **Backend & Database**
@@ -87,23 +86,28 @@ Create `.env.local` with your configuration:
 
 ```env
 # Database
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="file:./prisma/dev.db"
+
+# Optional for Turso/libsql production
+# DATABASE_AUTH_TOKEN="your_turso_auth_token"
 
 # Stripe Configuration
-STRIPE_PUBLIC_KEY="pk_test_your_stripe_public_key"
 STRIPE_SECRET_KEY="sk_test_your_stripe_secret_key"
 STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
 
 # Email Configuration
 RESEND_API_KEY="re_your_resend_api_key"
-FROM_EMAIL="noreply@yourdomain.com"
+EMAIL_FROM="Serene Wellness <onboarding@resend.dev>"
 
 # Admin Authentication
-ADMIN_SECRET="your-super-secure-admin-password"
-SESSION_SECRET="your-32-character-session-secret"
+ADMIN_PASSWORD="your-admin-login-password"
+ADMIN_SECRET="your-cookie-signing-secret"
 
 # Application URLs
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
+
+# Optional legacy alias (supported)
+# NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### 3. Database Setup
@@ -156,7 +160,7 @@ npm run dev
 ### For Administrators
 
 1. **Access Admin Panel** - Navigate to `/admin/login`
-2. **Enter Credentials** - Use your `ADMIN_SECRET` password
+2. **Enter Credentials** - Use your `ADMIN_PASSWORD`
 3. **View Dashboard** - Monitor analytics, revenue, and booking trends
 4. **Manage Bookings** - Search, filter, and update booking statuses
 
@@ -191,35 +195,115 @@ Use Stripe's test card numbers:
 
 ## 🚀 Deployment
 
-### Recommended Platforms
+### Best deployment option (recommended)
 
-- **[Vercel](https://vercel.com/)** - Optimal for Next.js applications
-- **[Railway](https://railway.app/)** - Full-stack with database hosting
-- **[Render](https://render.com/)** - Free tier with PostgreSQL
+**Vercel + Turso (libsql) + Stripe + Resend**
 
-### Production Checklist
+- Vercel is the smoothest production host for Next.js App Router.
+- Turso fits this codebase because it already uses the Prisma libsql adapter.
 
-- [ ] Configure production database (PostgreSQL/MySQL recommended)
-- [ ] Set up Stripe webhook endpoint with production URL
-- [ ] Configure Resend with custom domain for email delivery
-- [ ] Enable security headers and HTTPS
-- [ ] Set up monitoring and error tracking
-- [ ] Configure environment variables on hosting platform
-- [ ] Test payment flow end-to-end
+### Production environment variables (checklist)
 
-### Environment Variables for Production
+Required:
 
-```env
-DATABASE_URL="your_production_database_url"
-STRIPE_PUBLIC_KEY="pk_live_..."
-STRIPE_SECRET_KEY="sk_live_..."
-STRIPE_WEBHOOK_SECRET="whsec_live_..."
-RESEND_API_KEY="re_live_..."
-FROM_EMAIL="booking@yourdomain.com"
-ADMIN_SECRET="strong-production-password"
-SESSION_SECRET="secure-32-character-secret"
-NEXT_PUBLIC_BASE_URL="https://yourdomain.com"
+- `NEXT_PUBLIC_BASE_URL` — your production URL, e.g. `https://your-domain.com`
+- `DATABASE_URL` — Turso URL (`libsql://...`) or another durable DB URL
+- `STRIPE_SECRET_KEY` — `sk_live_...`
+- `STRIPE_WEBHOOK_SECRET` — `whsec_...` from the **live** webhook endpoint
+- `RESEND_API_KEY`
+- `ADMIN_PASSWORD` — admin login password
+- `ADMIN_SECRET` — strong random signing secret for the admin session cookie
+
+Recommended:
+
+- `DATABASE_AUTH_TOKEN` — required for most Turso databases
+- `EMAIL_FROM` — verified sender, e.g. `Serene Wellness <booking@your-domain.com>`
+
+Tip: keep a clean baseline by starting from `.env.example`.
+
+### Database deployment recommendation
+
+This project uses Prisma + the libsql adapter.
+
+- Recommended: **Turso (libsql)** for production.
+- Local dev: SQLite file via `DATABASE_URL="file:./prisma/dev.db"`.
+
+Apply schema to production DB:
+
+```bash
+# Ensure DATABASE_URL (+ DATABASE_AUTH_TOKEN if needed) are set for production
+npx prisma db push
 ```
+
+If you later introduce migrations, you can switch to `prisma migrate deploy`.
+
+### Stripe production setup notes
+
+- Switch to **Live mode** in Stripe Dashboard.
+- Use **live API keys** in Vercel env vars (`sk_live_...`).
+- Ensure your redirect base URL matches `NEXT_PUBLIC_BASE_URL`.
+- Verify your business details, payouts, and the payment methods you want to accept.
+
+### Webhook production setup (Stripe)
+
+1. Stripe Dashboard → Developers → Webhooks → **Add endpoint**
+2. Endpoint URL: `https://your-domain.com/api/webhooks/stripe`
+3. Events to send:
+   - `checkout.session.completed`
+4. Copy the signing secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET`
+
+Notes:
+
+- This route verifies the Stripe signature using the **raw request body**.
+- Don’t place auth middleware in front of `/api/webhooks/stripe`.
+
+### Email provider production notes (Resend)
+
+- Verify a sending domain in Resend and set `EMAIL_FROM` to that domain.
+- Configure SPF/DKIM as Resend instructs to improve deliverability.
+- Test delivery to Gmail/Outlook and watch Resend logs for bounces/blocks.
+
+### Common deployment pitfalls
+
+- `NEXT_PUBLIC_BASE_URL` not set (Stripe success/cancel URLs break)
+- Using `sk_test_...` in production (payments won’t match live webhooks)
+- Missing `DATABASE_AUTH_TOKEN` for Turso (DB queries fail at runtime)
+- Webhook secret copied from **test** endpoint instead of **live**
+- Forgetting to run `npx prisma db push` against the production database
+- Unverified `EMAIL_FROM` sender leading to poor deliverability or blocked emails
+
+### Exact deployment steps (Vercel + Turso)
+
+1. Create a Turso database
+   - Create DB in Turso and get:
+     - `DATABASE_URL` (libsql URL)
+     - `DATABASE_AUTH_TOKEN`
+2. Apply schema to the production DB
+   - Locally set `DATABASE_URL` (+ `DATABASE_AUTH_TOKEN`) and run:
+     - `npx prisma db push`
+3. Create a Vercel project
+   - Import the Git repo into Vercel
+   - Framework preset: Next.js
+4. Configure Vercel Environment Variables
+   - Add all required vars from the checklist above
+5. Deploy
+   - Trigger a deploy from Vercel (or push to your main branch)
+6. Create the Stripe live webhook endpoint
+   - Add endpoint URL and event `checkout.session.completed`
+   - Set `STRIPE_WEBHOOK_SECRET` in Vercel and redeploy if needed
+7. Configure Resend domain + sender
+   - Verify domain
+   - Set `EMAIL_FROM`
+
+### Post-deployment test checklist
+
+- Homepage loads and services render
+- Booking flow creates a PENDING booking and redirects to Stripe Checkout
+- Live payment succeeds and webhook confirms booking (status becomes CONFIRMED)
+- Confirmation email is delivered (check Resend logs)
+- Cancel flow works (booking not confirmed)
+- Admin login works and bookings list loads
+- Admin status updates work (and don’t allow invalid transitions)
 
 ## 📊 Analytics & Monitoring
 

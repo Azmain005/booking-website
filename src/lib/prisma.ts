@@ -10,7 +10,8 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL environment variable is not set");
-  const adapter = new PrismaLibSql({ url });
+  const authToken = process.env.DATABASE_AUTH_TOKEN;
+  const adapter = new PrismaLibSql({ url, authToken });
   return new PrismaClient({
     adapter,
   } as unknown as ConstructorParameters<typeof PrismaClient>[0]);
