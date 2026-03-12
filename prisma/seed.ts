@@ -5,7 +5,9 @@ import { PrismaClient } from "../src/generated/prisma";
 dotenv.config();
 
 const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter } as any);
+const prisma = new PrismaClient({
+  adapter,
+} as unknown as ConstructorParameters<typeof PrismaClient>[0]);
 
 const services = [
   {
