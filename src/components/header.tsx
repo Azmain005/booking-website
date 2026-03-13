@@ -1,6 +1,8 @@
 import { Leaf } from "lucide-react";
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/30 bg-background/80 backdrop-blur-xl shadow-sm">
@@ -32,6 +34,7 @@ export function Header() {
               <span className="relative z-10">Admin</span>
               <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
             </Link>
+            <ThemeToggle />
           </nav>
         </div>
       </div>

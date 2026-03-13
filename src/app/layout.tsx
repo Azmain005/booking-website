@@ -95,11 +95,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const themeScript = `(() => {
+  try {
+    const key = 'theme';
+    const stored = localStorage.getItem(key);
+    const dark = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.toggle('dark', dark);
+  } catch {}
+})();`;
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${openSans.variable} antialiased min-h-screen bg-background`}
       >
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         {children}
         <Toaster richColors position="top-right" />
       </body>
