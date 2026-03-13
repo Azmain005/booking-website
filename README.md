@@ -1,358 +1,238 @@
-# 🌿 Serene Wellness - Premium Booking Platform
+# Serene Wellness Booking Platform
 
-A modern, production-ready booking website for wellness services with integrated payments, email confirmations, and administrative management.
+Serene Wellness is a Next.js booking website for service-based businesses. Customers can browse services, book a time, pay via Stripe Checkout, and receive an email confirmation. Admins can log in to manage services and bookings.
 
-![Serene Wellness](https://img.shields.io/badge/Status-Production%20Ready-green?style=flat-square)
-![Next.js](https://img.shields.io/badge/Next.js-16+-black?style=flat-square&logo=nextdotjs)
-![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue?style=flat-square&logo=typescript)
-![Stripe](https://img.shields.io/badge/Stripe-Integrated-purple?style=flat-square&logo=stripe)
+## Highlights
 
-## ✨ Key Features
+Customer flow
 
-### 🎯 **Customer Experience**
+- Browse services and view pricing/duration
+- Book an appointment and pay via Stripe Checkout
+- Confirmation page and email receipt/confirmation
 
-- **Modern UI/UX** with animated gradients, professional styling, and responsive design
-- **Service Discovery** with detailed pricing and duration information
-- **Real-time Booking Form** with comprehensive validation and error handling
-- **Secure Payment Processing** via Stripe Checkout with PCI compliance
-- **Instant Email Confirmations** with professional HTML templates
-- **Toast Notifications** for enhanced user feedback throughout the journey
+Admin
 
-### 👥 **Admin Management**
+- Cookie-based admin authentication (HTTP-only signed cookie)
+- Dashboard analytics
+- Manage services (create/edit)
+- Manage bookings (search/filter/status updates)
 
-- **Secure Admin Panel** with cookie-based authentication and timing-safe password verification
-- **Comprehensive Analytics Dashboard** with revenue tracking, booking metrics, and business insights
-- **Advanced Booking Management** with search, filtering, and status updates
-- **Real-time Search & Filter** across customer names, emails, services, and booking IDs
-- **Professional Admin Experience** with toast notifications and intuitive UI
+Reliability
 
-### 🛡️ **Security & Reliability**
+- Stripe webhook signature verification
+- Idempotent booking confirmation and email sending
+- Fallback reconciliation on the success page and in the admin list (helps in dev or when webhooks are delayed)
 
-- **Webhook Verification** with Stripe signature validation and idempotency handling
-- **Payment Confirmation** only after verified webhook events (never from client-side)
-- **HMAC SHA-256 Signed Cookies** for secure admin session management
-- **SQL Injection Protection** via Prisma ORM with parameterized queries
-- **Rate Limiting Ready** architecture for production deployment
+UI
 
-### ⚡ **Performance & SEO**
+- Tailwind CSS v4 + shadcn/ui primitives
+- Dark mode toggle
 
-- **Next.js App Router** with Server Components for optimal performance
-- **Comprehensive SEO Metadata** with Open Graph, Twitter Cards, and structured data
-- **Progressive Enhancement** with graceful JavaScript fallbacks
-- **Optimized Database Queries** with proper indexing and relations
+## Tech stack
 
-## 🏗️ Architecture & Tech Stack
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4
+- Prisma Client (generated into `src/generated/prisma`)
+- Turso/libsql runtime access via Prisma driver adapter
+- Stripe for payments
+- Resend for transactional email
 
-### **Frontend**
+## Key paths
 
-- **[Next.js 15+](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first styling
-- **[shadcn/ui](https://ui.shadcn.com/)** - Modern component library
-- **[Sonner](https://sonner.emilkowal.ski/)** - Toast notifications
+- `src/app` - App Router pages and API routes
+- `src/app/api/checkout/route.ts` - creates Stripe Checkout session + PENDING booking
+- `src/app/api/webhooks/stripe/route.ts` - confirms booking from Stripe webhook
+- `src/app/success/page.tsx` - success page with fallback reconciliation
+- `src/app/api/admin` - admin API routes
+- `src/lib/prisma.ts` - runtime Prisma client via libsql adapter
+- `prisma.config.ts` - Prisma engine datasource configuration (uses `PRISMA_DATABASE_URL`)
 
-### **Backend & Database**
+## Images
 
-- **[Prisma](https://prisma.io/)** - Type-safe database ORM
-- **[SQLite](https://sqlite.org/)** - Lightweight database (production-ready with turso/libsql)
-- **[Stripe API](https://stripe.com/)** - Payment processing
-- **[Resend](https://resend.com/)** - Transactional email delivery
+Remote images are currently allowed only from `images.unsplash.com`. If you store service images on a different host, update `remotePatterns` in `next.config.ts`.
 
-### **Authentication & Security**
+## Project notes (important)
 
-- **Cookie-based Sessions** with HMAC SHA-256 signing
-- **Webhook Signature Verification** with raw body validation
-- **Environment Variable Security** for sensitive configuration
+This repo intentionally uses two database URLs:
 
-## 🚀 Quick Start
+- `DATABASE_URL` and `DATABASE_AUTH_TOKEN` are used at runtime via the libsql adapter (Turso or local file).
+- `PRISMA_DATABASE_URL` is used only by Prisma CLI/engine (`prisma generate`, `prisma db push`, `prisma studio`). Prisma's SQLite connector expects a `file:` URL and does not connect to `libsql://`.
+
+If you are using Turso in production, schema provisioning is done with `npm run db:init` (not `prisma db push`).
+
+## Getting started (local)
 
 ### Prerequisites
 
-- **Node.js 18+** and npm/yarn/pnpm
-- **Stripe Account** (free for testing)
-- **Resend Account** (free tier available)
+- Node.js 18+
+- A Stripe account (test mode is fine)
+- A Resend account (for email)
 
-### 1. Clone & Install
+### 1) Install dependencies
 
 ```bash
-git clone https://github.com/yourusername/serene-wellness.git
-cd serene-wellness
 npm install
 ```
 
-### 2. Environment Configuration
+`prisma generate` runs automatically on install via `postinstall`.
 
-Create `.env.local` with your configuration:
+### 2) Create `.env`
+
+For local development with a SQLite file:
 
 ```env
-# Database
+# Runtime DB (used by the app via the libsql adapter)
 DATABASE_URL="file:./prisma/dev.db"
 
-# Optional for Turso/libsql production
-# DATABASE_AUTH_TOKEN="your_turso_auth_token"
+# Prisma engine DB (used by Prisma CLI)
+PRISMA_DATABASE_URL="file:./prisma/dev.db"
 
-# Stripe Configuration
-STRIPE_SECRET_KEY="sk_test_your_stripe_secret_key"
-STRIPE_WEBHOOK_SECRET="whsec_your_webhook_secret"
+# Stripe
+STRIPE_SECRET_KEY="sk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
 
-# Email Configuration
-RESEND_API_KEY="re_your_resend_api_key"
+# Resend
+RESEND_API_KEY="re_..."
 EMAIL_FROM="Serene Wellness <onboarding@resend.dev>"
 
-# Admin Authentication
-ADMIN_PASSWORD="your-admin-login-password"
-ADMIN_SECRET="your-cookie-signing-secret"
+# Admin auth
+ADMIN_PASSWORD="change-me"
+ADMIN_SECRET="change-me-to-a-long-random-string"
 
-# Application URLs
+# App URL (used to build Stripe success/cancel URLs)
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
 
 # Optional legacy alias (supported)
 # NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
-### 3. Database Setup
+### 3) Create tables
+
+For local file DBs you can use Prisma CLI:
 
 ```bash
-# Generate Prisma client
-npx prisma generate
+npm run db:push
+```
 
-# Run database migrations
-npx prisma db push
+### 4) Seed sample services (optional)
 
-# Seed with sample services (optional)
+```bash
 npm run db:seed
 ```
 
-### 4. Stripe Webhook Configuration
-
-#### For Development:
-
-```bash
-# Install Stripe CLI
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-
-# Copy the webhook secret to your .env.local file
-```
-
-#### For Production:
-
-1. Create a webhook endpoint in your Stripe dashboard
-2. Set URL to: `https://yourdomain.com/api/webhooks/stripe`
-3. Listen for: `checkout.session.completed`
-4. Copy the webhook secret to your environment variables
-
-### 5. Launch Application
+### 5) Start the dev server
 
 ```bash
 npm run dev
-# Open http://localhost:3000
 ```
 
-## 📋 Usage Guide
+Open `http://localhost:3000`.
 
-### For Customers
+## Stripe webhooks (development)
 
-1. **Browse Services** - View available treatments with pricing and duration
-2. **Book Treatment** - Fill out the booking form with preferred date/time
-3. **Secure Payment** - Complete payment via Stripe Checkout
-4. **Confirmation** - Receive instant email confirmation with booking details
+The booking becomes confirmed only after Stripe sends `checkout.session.completed` and the webhook verifies the signature.
 
-### For Administrators
-
-1. **Access Admin Panel** - Navigate to `/admin/login`
-2. **Enter Credentials** - Use your `ADMIN_PASSWORD`
-3. **View Dashboard** - Monitor analytics, revenue, and booking trends
-4. **Manage Bookings** - Search, filter, and update booking statuses
-
-## 🔧 Development
-
-### Database Operations
+For local testing you typically need Stripe CLI:
 
 ```bash
-# View database in Prisma Studio
-npx prisma studio
-
-# Reset database (caution: deletes all data)
-npx prisma db push --force-reset
-
-# Generate new migration
-npx prisma migrate dev --name your_migration_name
+stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-### Testing Payments
+Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET` and restart `npm run dev`.
 
-Use Stripe's test card numbers:
+For a detailed step-by-step guide, see `WEBHOOK_TESTING.md`.
 
-- **Success**: `4242 4242 4242 4242`
-- **Decline**: `4000 0000 0000 0002`
-- **Require 3D Secure**: `4000 0000 0000 3220`
+## Email (Resend)
 
-### Email Testing
+In Resend test/sandbox mode, sending may be restricted (for example, only to your account email) until you verify a domain and configure a verified sender. If emails appear to work only for one recipient, check Resend logs and domain verification status.
 
-- Check Resend dashboard for delivery logs
-- Use temporary email services for testing
-- Preview email templates in development
+## Admin
 
-## 🚀 Deployment
+- Login: `/admin/login`
+- Dashboard: `/admin`
 
-### Best deployment option (recommended)
+The admin session is an HTTP-only cookie signed with `ADMIN_SECRET`. Logging in requires the exact `ADMIN_PASSWORD`.
 
-**Vercel + Turso (libsql) + Stripe + Resend**
+## Useful scripts
 
-- Vercel is the smoothest production host for Next.js App Router.
-- Turso fits this codebase because it already uses the Prisma libsql adapter.
+- `npm run dev` - start dev server
+- `npm run build` - production build
+- `npm run start` - start production server
+- `npm run lint` - run ESLint
+- `npm run db:push` - apply schema to the local Prisma engine DB (uses `PRISMA_DATABASE_URL`)
+- `npm run db:init` - provision tables/indexes on a libsql/Turso DB (uses `DATABASE_URL` + optional `DATABASE_AUTH_TOKEN`)
+- `npm run db:seed` - seed sample services (uses `DATABASE_URL`)
+- `npm run db:studio` - open Prisma Studio (uses `PRISMA_DATABASE_URL`)
 
-### Production environment variables (checklist)
+## Deployment (Vercel + Turso + Stripe + Resend)
 
-Required:
+### Environment variables
 
-- `NEXT_PUBLIC_BASE_URL` — your production URL, e.g. `https://your-domain.com`
-- `DATABASE_URL` — Turso URL (`libsql://...`) or another durable DB URL
-- `STRIPE_SECRET_KEY` — `sk_live_...`
-- `STRIPE_WEBHOOK_SECRET` — `whsec_...` from the **live** webhook endpoint
+Required (runtime)
+
+- `DATABASE_URL` - Turso/libsql URL (`libsql://...`) or `file:...` locally
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
 - `RESEND_API_KEY`
-- `ADMIN_PASSWORD` — admin login password
-- `ADMIN_SECRET` — strong random signing secret for the admin session cookie
+- `ADMIN_PASSWORD`
+- `ADMIN_SECRET`
 
-Recommended:
+Recommended (runtime)
 
-- `DATABASE_AUTH_TOKEN` — required for most Turso databases
-- `EMAIL_FROM` — verified sender, e.g. `Serene Wellness <booking@your-domain.com>`
+- `DATABASE_AUTH_TOKEN` - usually required for Turso
+- `EMAIL_FROM` - verified sender
+- `NEXT_PUBLIC_BASE_URL` - your public site URL
 
-Tip: keep a clean baseline by starting from `.env.example`.
+Prisma CLI only
 
-### Database deployment recommendation
+- `PRISMA_DATABASE_URL` - must be a `file:` URL for Prisma engine commands
 
-This project uses Prisma + the libsql adapter.
+### Database provisioning
 
-- Recommended: **Turso (libsql)** for production.
-- Local dev: SQLite file via `DATABASE_URL="file:./prisma/dev.db"`.
+- Local file DB: `npm run db:push`
+- Turso/libsql: `npm run db:init`
 
-Apply schema to production DB:
+### Stripe webhook (production)
 
-```bash
-# Ensure DATABASE_URL (+ DATABASE_AUTH_TOKEN if needed) are set for production
-npx prisma db push
-```
-
-If you later introduce migrations, you can switch to `prisma migrate deploy`.
-
-### Stripe production setup notes
-
-- Switch to **Live mode** in Stripe Dashboard.
-- Use **live API keys** in Vercel env vars (`sk_live_...`).
-- Ensure your redirect base URL matches `NEXT_PUBLIC_BASE_URL`.
-- Verify your business details, payouts, and the payment methods you want to accept.
-
-### Webhook production setup (Stripe)
-
-1. Stripe Dashboard → Developers → Webhooks → **Add endpoint**
+1. Stripe Dashboard -> Developers -> Webhooks -> Add endpoint
 2. Endpoint URL: `https://your-domain.com/api/webhooks/stripe`
-3. Events to send:
-   - `checkout.session.completed`
-4. Copy the signing secret (`whsec_...`) to `STRIPE_WEBHOOK_SECRET`
+3. Event: `checkout.session.completed`
+4. Copy `whsec_...` into `STRIPE_WEBHOOK_SECRET`
 
-Notes:
+### Post-deploy checks
 
-- This route verifies the Stripe signature using the **raw request body**.
-- Don’t place auth middleware in front of `/api/webhooks/stripe`.
+- Visit `/api/health` to confirm environment variables and DB connectivity
+- Complete a test payment in Stripe test mode
+- Confirm the booking moves from `PENDING` to `CONFIRMED` and email is delivered
 
-### Email provider production notes (Resend)
+## Troubleshooting
 
-- Verify a sending domain in Resend and set `EMAIL_FROM` to that domain.
-- Configure SPF/DKIM as Resend instructs to improve deliverability.
-- Test delivery to Gmail/Outlook and watch Resend logs for bounces/blocks.
+- Stripe CLI not found when running `stripe listen`: install Stripe CLI (see `WEBHOOK_TESTING.md`).
+- Bookings stuck as unpaid in dev: confirm webhooks are being forwarded, and check `/api/health`.
+- Emails not delivered to arbitrary recipients: verify Resend sender domain and check Resend logs.
 
-### Common deployment pitfalls
+## API reference (selected)
 
-- `NEXT_PUBLIC_BASE_URL` not set (Stripe success/cancel URLs break)
-- Using `sk_test_...` in production (payments won’t match live webhooks)
-- Missing `DATABASE_AUTH_TOKEN` for Turso (DB queries fail at runtime)
-- Webhook secret copied from **test** endpoint instead of **live**
-- Forgetting to run `npx prisma db push` against the production database
-- Unverified `EMAIL_FROM` sender leading to poor deliverability or blocked emails
+Public
 
-### Exact deployment steps (Vercel + Turso)
+- `POST /api/checkout` - create Stripe Checkout session and create a `PENDING` booking
+- `POST /api/webhooks/stripe` - Stripe webhook handler
+- `GET /api/health` - environment + DB connectivity check
 
-1. Create a Turso database
-   - Create DB in Turso and get:
-     - `DATABASE_URL` (libsql URL)
-     - `DATABASE_AUTH_TOKEN`
-2. Apply schema to the production DB
-   - Locally set `DATABASE_URL` (+ `DATABASE_AUTH_TOKEN`) and run:
-     - `npx prisma db push`
-3. Create a Vercel project
-   - Import the Git repo into Vercel
-   - Framework preset: Next.js
-4. Configure Vercel Environment Variables
-   - Add all required vars from the checklist above
-5. Deploy
-   - Trigger a deploy from Vercel (or push to your main branch)
-6. Create the Stripe live webhook endpoint
-   - Add endpoint URL and event `checkout.session.completed`
-   - Set `STRIPE_WEBHOOK_SECRET` in Vercel and redeploy if needed
-7. Configure Resend domain + sender
-   - Verify domain
-   - Set `EMAIL_FROM`
+Admin (requires admin session cookie)
 
-### Post-deployment test checklist
+- `POST /api/admin/auth` - login (sets cookie)
+- `DELETE /api/admin/auth` - logout (clears cookie)
+- `GET /api/admin/bookings` - list bookings (includes best-effort reconciliation)
+- `PATCH /api/admin/bookings/:id` - update booking status
+- `GET /api/admin/services` - list services
+- `POST /api/admin/services` - create service
+- `PATCH /api/admin/services/:id` - update service
 
-- Homepage loads and services render
-- Booking flow creates a PENDING booking and redirects to Stripe Checkout
-- Live payment succeeds and webhook confirms booking (status becomes CONFIRMED)
-- Confirmation email is delivered (check Resend logs)
-- Cancel flow works (booking not confirmed)
-- Admin login works and bookings list loads
-- Admin status updates work (and don’t allow invalid transitions)
+Legacy/optional
 
-## 📊 Analytics & Monitoring
+- `POST /api/bookings` - creates a `PENDING` booking without creating a Stripe session (not used by the main UI flow)
 
-The admin dashboard provides comprehensive business insights:
+## License
 
-- **Revenue Tracking** - Total and daily revenue analytics
-- **Booking Metrics** - Confirmed, pending, and cancelled booking counts
-- **Service Performance** - Most popular services and customer preferences
-- **Daily Activity** - Today's booking sessions and customer engagement
-
-## 🛠️ API Reference
-
-### Public Endpoints
-
-- `POST /api/checkout` - Create Stripe Checkout Session
-- `POST /api/webhooks/stripe` - Handle Stripe webhook events
-
-### Admin Endpoints (Protected)
-
-- `POST /api/admin/auth` - Admin login/logout
-- `PATCH /api/admin/bookings/[id]` - Update booking status
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **[shadcn](https://github.com/shadcn)** for the beautiful UI component library
-- **[Stripe](https://stripe.com/)** for robust payment infrastructure
-- **[Prisma](https://prisma.io/)** for type-safe database operations
-- **[Vercel](https://vercel.com/)** for seamless deployment platform
-
----
-
-<div align="center">
-
-**Built with ❤️ for wellness businesses everywhere**
-
-[Report Bug](https://github.com/yourusername/serene-wellness/issues) •
-[Request Feature](https://github.com/yourusername/serene-wellness/issues) •
-[View Demo](https://your-demo-url.com)
-
-</div>
+No license file is included in this repository.
