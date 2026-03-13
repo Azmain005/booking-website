@@ -1,3 +1,4 @@
+import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { formatDuration } from "@/lib/utils";
@@ -6,6 +7,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const authSession = await getAuthSession();
+    const userId = authSession?.user?.id;
+    if (!userId) {
+      return NextResponse.json(
+        {
+          error: "Please sign in to continue to checkout.",
+          code: "AUTH_REQUIRED",
+        },
+        { status: 401 },
+      );
+    }
+
     // ── 1. Parse + validate ──────────────────────────────────────────────────
     let body: unknown;
     try {
@@ -60,6 +73,7 @@ export async function POST(request: NextRequest) {
         notes: notes?.trim() || null,
         status: "PENDING",
         serviceId,
+        userId,
       },
     });
 

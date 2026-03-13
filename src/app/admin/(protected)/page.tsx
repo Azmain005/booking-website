@@ -1,7 +1,5 @@
-import { AdminAnalytics } from "@/components/admin/admin-analytics";
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
-import { BookingsTable } from "@/components/admin/bookings-table";
-import { ServicesManager } from "@/components/admin/services-manager";
+import { AdminSections } from "@/components/admin/admin-sections";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 
@@ -31,6 +29,20 @@ export default async function AdminDashboardPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      bookings: {
+        select: {
+          createdAt: true,
+          status: true,
+          amountPaid: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+
   const rows = bookings.map((b) => ({
     id: b.id,
     customerName: b.customerName,
@@ -53,6 +65,36 @@ export default async function AdminDashboardPage() {
     createdAtIso: s.createdAt.toISOString(),
   }));
 
+  const userRows = users.map((user) => {
+    const lastBookingAt = user.bookings[0]?.createdAt ?? null;
+    const lastActivityAt =
+      lastBookingAt && lastBookingAt > user.createdAt
+        ? lastBookingAt
+        : user.createdAt;
+
+    const totalSpent = user.bookings.reduce(
+      (sum, booking) => sum + (booking.amountPaid ?? 0),
+      0,
+    );
+    const confirmedBookings = user.bookings.filter(
+      (booking) =>
+        booking.status === "CONFIRMED" || booking.status === "COMPLETED",
+    ).length;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      createdAtIso: user.createdAt.toISOString(),
+      lastBookingAtIso: lastBookingAt ? lastBookingAt.toISOString() : null,
+      lastActivityAtIso: lastActivityAt.toISOString(),
+      totalBookings: user.bookings.length,
+      confirmedBookings,
+      totalSpent,
+    };
+  });
+
   return (
     <main className="container mx-auto max-w-7xl p-6 space-y-8">
       <div className="flex items-start justify-between gap-4">
@@ -65,9 +107,11 @@ export default async function AdminDashboardPage() {
         <AdminLogoutButton />
       </div>
 
-      <AdminAnalytics bookings={rows} />
-      <ServicesManager initialRows={serviceRows} />
-      <BookingsTable initialRows={rows} />
+      <AdminSections
+        bookingRows={rows}
+        serviceRows={serviceRows}
+        userRows={userRows}
+      />
     </main>
   );
 }

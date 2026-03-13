@@ -43,9 +43,11 @@ export function AdminLoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-5" noValidate>
-      <div className="space-y-1.5">
-        <Label htmlFor="adminPassword">Admin Password</Label>
+    <form onSubmit={onSubmit} className="space-y-6" noValidate>
+      <div className="space-y-2.5">
+        <Label htmlFor="adminPassword" className="text-sm font-semibold">
+          Admin password
+        </Label>
         <div className="relative">
           <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -54,7 +56,7 @@ export function AdminLoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter admin password"
-            className="pl-9"
+            className="h-11 pl-9"
             autoComplete="current-password"
             required
           />
@@ -67,13 +69,17 @@ export function AdminLoginForm() {
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
         >
           {error}
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        className="h-11 w-full text-sm font-semibold"
+        disabled={loading}
+      >
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

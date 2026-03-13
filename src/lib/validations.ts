@@ -53,6 +53,52 @@ export const bookingFormSchema = z.object({
 
 export type BookingFormValues = z.infer<typeof bookingFormSchema>;
 
+export const registerSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be under 100 characters"),
+  email: z
+    .string()
+    .trim()
+    .email("Please enter a valid email address")
+    .max(254, "Email address is too long"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password is too long"),
+  phone: z
+    .string()
+    .trim()
+    .max(30, "Phone number is too long")
+    .optional()
+    .or(z.literal("")),
+});
+
+export const loginSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name must be under 100 characters"),
+  phone: z
+    .string()
+    .trim()
+    .max(30, "Phone number is too long")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type RegisterValues = z.infer<typeof registerSchema>;
+export type LoginValues = z.infer<typeof loginSchema>;
+export type UpdateProfileValues = z.infer<typeof updateProfileSchema>;
+
 // Server-side API schema (same structure, stricter date validation)
 export const createBookingSchema = bookingFormSchema.superRefine(
   (data, ctx) => {

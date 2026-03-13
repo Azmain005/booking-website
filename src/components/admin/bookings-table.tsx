@@ -360,7 +360,7 @@ export function BookingsTable({
 
       <div className="bg-muted/30 rounded-xl p-4">
         <p className="text-sm text-muted-foreground flex items-center gap-2">
-          <span className="text-blue-500">ℹ️</span>
+          <span className="h-2 w-2 rounded-full bg-blue-500" />
           <strong>Note:</strong> Bookings are only marked{" "}
           <strong>CONFIRMED</strong> by verified Stripe webhooks.
         </p>

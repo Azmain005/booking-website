@@ -37,6 +37,18 @@ async function main() {
         args: [],
       },
       {
+        sql: `CREATE TABLE IF NOT EXISTS "User" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "email" TEXT NOT NULL,
+          "passwordHash" TEXT NOT NULL,
+          "name" TEXT,
+          "phone" TEXT,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL
+        );`,
+        args: [],
+      },
+      {
         sql: `CREATE TABLE IF NOT EXISTS "Booking" (
           "id" TEXT NOT NULL PRIMARY KEY,
           "customerName" TEXT NOT NULL,
@@ -51,8 +63,14 @@ async function main() {
           "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
           "updatedAt" DATETIME NOT NULL,
           "serviceId" TEXT NOT NULL,
-          CONSTRAINT "Booking_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+          "userId" TEXT,
+          CONSTRAINT "Booking_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "Service" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+          CONSTRAINT "Booking_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE SET NULL ON UPDATE CASCADE
         );`,
+        args: [],
+      },
+      {
+        sql: `CREATE UNIQUE INDEX IF NOT EXISTS "User_email_key" ON "User"("email");`,
         args: [],
       },
       {
@@ -73,6 +91,21 @@ async function main() {
   try {
     await client.execute(
       'ALTER TABLE "Booking" ADD COLUMN "confirmationEmailSentAt" DATETIME;',
+    );
+  } catch {
+    // ignore
+  }
+
+  try {
+    await client.execute('ALTER TABLE "Booking" ADD COLUMN "userId" TEXT;');
+  } catch {
+    // ignore
+  }
+
+  // Create index after column migration so older tables do not fail here.
+  try {
+    await client.execute(
+      'CREATE INDEX IF NOT EXISTS "Booking_userId_idx" ON "Booking"("userId");',
     );
   } catch {
     // ignore

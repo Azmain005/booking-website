@@ -10,7 +10,7 @@ import {
   MessageSquare,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,27 @@ export function BookingForm({ service }: BookingFormProps) {
 
   const selectedTime = watch("bookingTime");
 
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem("pendingCheckoutBooking");
+      if (!raw) return;
+
+      const parsed = bookingFormSchema.safeParse(JSON.parse(raw));
+      if (!parsed.success) return;
+      if (parsed.data.serviceId !== service.id) return;
+
+      setValue("customerName", parsed.data.customerName);
+      setValue("customerEmail", parsed.data.customerEmail);
+      setValue("bookingDate", parsed.data.bookingDate);
+      setValue("bookingTime", parsed.data.bookingTime);
+      setValue("notes", parsed.data.notes ?? "");
+
+      window.sessionStorage.removeItem("pendingCheckoutBooking");
+    } catch {
+      // ignore storage parsing issues
+    }
+  }, [service.id, setValue]);
+
   async function onSubmit(values: BookingFormValues) {
     setServerError(null);
 
@@ -105,6 +126,16 @@ export function BookingForm({ service }: BookingFormProps) {
       });
 
       const data = await res.json();
+
+      if (res.status === 401) {
+        window.sessionStorage.setItem(
+          "pendingCheckoutBooking",
+          JSON.stringify(values),
+        );
+        const nextPath = `${window.location.pathname}${window.location.search}`;
+        window.location.href = `/account/login?next=${encodeURIComponent(nextPath)}`;
+        return;
+      }
 
       if (!res.ok) {
         const msg = data?.error ?? `Request failed with status ${res.status}`;
