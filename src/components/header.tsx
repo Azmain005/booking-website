@@ -2,6 +2,7 @@ import { Leaf } from "lucide-react";
 import Link from "next/link";
 
 import { HeaderUserControls } from "@/components/account/header-user-controls";
+import { MobileHeaderMenu } from "@/components/mobile-header-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getAuthSession } from "@/lib/auth";
 
@@ -27,28 +28,38 @@ export async function Header() {
             </span>
           </Link>
 
-          {/* Nav */}
-          <nav className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all duration-200 rounded-xl hover:bg-accent/80 relative group"
-            >
-              <span className="relative z-10">Services</span>
-              <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-            </Link>
-            {/* <Link
-              href="/admin"
-              className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all duration-200 rounded-xl hover:bg-accent/80 relative group"
-            >
-              <span className="relative z-10">Admin</span>
-              <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-            </Link> */}
-            <HeaderUserControls
-              isLoggedIn={isLoggedIn}
-              displayName={displayName}
-            />
-            <ThemeToggle />
-          </nav>
+          <div className="flex items-center gap-2">
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-2">
+              <Link
+                href="/"
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all duration-200 rounded-xl hover:bg-accent/80 relative group"
+              >
+                <span className="relative z-10">Services</span>
+                <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </Link>
+              {/* <Link
+                href="/admin"
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all duration-200 rounded-xl hover:bg-accent/80 relative group"
+              >
+                <span className="relative z-10">Admin</span>
+                <div className="absolute inset-0 bg-primary/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </Link> */}
+              <HeaderUserControls
+                isLoggedIn={isLoggedIn}
+                displayName={displayName}
+              />
+              <ThemeToggle />
+            </nav>
+
+            {/* Mobile menu */}
+            <div className="md:hidden">
+              <MobileHeaderMenu
+                isLoggedIn={isLoggedIn}
+                displayName={displayName}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </header>
