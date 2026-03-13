@@ -78,3 +78,32 @@ export const createBookingSchema = bookingFormSchema.superRefine(
     }
   },
 );
+
+// Admin-only schema for creating/updating services.
+export const adminServiceSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Service name must be at least 2 characters")
+    .max(120, "Service name must be under 120 characters"),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(2000, "Description must be under 2000 characters"),
+  price: z.coerce
+    .number()
+    .positive("Price must be greater than 0")
+    .max(10000, "Price is too high"),
+  duration: z.coerce
+    .number()
+    .int("Duration must be a whole number")
+    .min(15, "Duration must be at least 15 minutes")
+    .max(480, "Duration must be less than 8 hours"),
+  imageUrl: z
+    .string()
+    .trim()
+    .url("Image URL must be a valid URL")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type AdminServiceValues = z.infer<typeof adminServiceSchema>;

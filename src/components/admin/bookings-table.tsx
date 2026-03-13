@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, LogOut, RefreshCcw, Search } from "lucide-react";
+import { Loader2, RefreshCcw, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -110,19 +110,6 @@ export function BookingsTable({
     );
   }, [rows, searchTerm, statusFilter]);
 
-  async function logout() {
-    const toastId = toast.loading("Signing out...");
-    try {
-      await fetch("/api/admin/auth", { method: "DELETE" });
-      toast.dismiss(toastId);
-      toast.success("Signed out successfully");
-      window.location.href = "/admin/login";
-    } catch {
-      toast.dismiss(toastId);
-      toast.error("Failed to sign out");
-    }
-  }
-
   async function refresh() {
     setRefreshing(true);
     const toastId = toast.loading("Refreshing bookings...");
@@ -212,14 +199,6 @@ export function BookingsTable({
                 <RefreshCcw className="h-4 w-4" />
               )}
               <span>Refresh</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={logout}
-              className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive/50"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
             </Button>
           </div>
         </div>
