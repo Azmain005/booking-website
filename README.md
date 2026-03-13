@@ -7,8 +7,14 @@ Serene Wellness is a Next.js booking website for service-based businesses. Custo
 Customer flow
 
 - Browse services and view pricing/duration
-- Book an appointment and pay via Stripe Checkout
+- Sign in, book an appointment, and pay via Stripe Checkout
 - Confirmation page and email receipt/confirmation
+
+Accounts
+
+- Customer accounts via NextAuth Credentials (email + password)
+- Register/login pages under `/account/*`
+- Customers can view their upcoming bookings under `/account/(protected)/bookings`
 
 Admin
 
@@ -25,8 +31,9 @@ Reliability
 
 UI
 
-- Tailwind CSS v4 + shadcn/ui primitives
+- Tailwind CSS v4 + Base UI primitives (wrapped in `src/components/ui/*`)
 - Dark mode toggle
+- Mobile header uses a hamburger menu to prevent nav overflow
 
 ## Tech stack
 
@@ -36,6 +43,7 @@ UI
 - Turso/libsql runtime access via Prisma driver adapter
 - Stripe for payments
 - Resend for transactional email
+- NextAuth (Credentials provider) for customer authentication
 
 ## Key paths
 
@@ -43,9 +51,13 @@ UI
 - `src/app/api/checkout/route.ts` - creates Stripe Checkout session + PENDING booking
 - `src/app/api/webhooks/stripe/route.ts` - confirms booking from Stripe webhook
 - `src/app/success/page.tsx` - success page with fallback reconciliation
+- `src/app/api/auth/[...nextauth]/route.ts` - NextAuth handler
+- `src/app/api/auth/register/route.ts` - registration endpoint
+- `src/app/account/*` - customer login/register/profile/bookings pages
 - `src/app/api/admin` - admin API routes
 - `src/lib/prisma.ts` - runtime Prisma client via libsql adapter
 - `prisma.config.ts` - Prisma engine datasource configuration (uses `PRISMA_DATABASE_URL`)
+- `src/components/header.tsx` - responsive header (desktop nav + mobile hamburger)
 
 ## Images
 
@@ -98,6 +110,10 @@ EMAIL_FROM="Serene Wellness <onboarding@resend.dev>"
 # Admin auth
 ADMIN_PASSWORD="change-me"
 ADMIN_SECRET="change-me-to-a-long-random-string"
+
+# Customer auth (NextAuth)
+# Recommended in production; if omitted the app falls back to ADMIN_SECRET.
+NEXTAUTH_SECRET="change-me-to-a-long-random-string"
 
 # App URL (used to build Stripe success/cancel URLs)
 NEXT_PUBLIC_BASE_URL="http://localhost:3000"
@@ -176,12 +192,13 @@ Required (runtime)
 - `RESEND_API_KEY`
 - `ADMIN_PASSWORD`
 - `ADMIN_SECRET`
+- `NEXT_PUBLIC_BASE_URL` - required for creating Stripe Checkout sessions
 
 Recommended (runtime)
 
 - `DATABASE_AUTH_TOKEN` - usually required for Turso
 - `EMAIL_FROM` - verified sender
-- `NEXT_PUBLIC_BASE_URL` - your public site URL
+- `NEXTAUTH_SECRET` - recommended (separate from `ADMIN_SECRET`)
 
 Prisma CLI only
 
@@ -218,6 +235,11 @@ Public
 - `POST /api/checkout` - create Stripe Checkout session and create a `PENDING` booking
 - `POST /api/webhooks/stripe` - Stripe webhook handler
 - `GET /api/health` - environment + DB connectivity check
+
+Auth
+
+- `POST /api/auth/register` - create an account (email + password)
+- `POST /api/auth/[...nextauth]` - NextAuth (credentials) handler
 
 Admin (requires admin session cookie)
 
