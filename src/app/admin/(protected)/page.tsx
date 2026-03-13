@@ -57,9 +57,7 @@ export default async function AdminDashboardPage() {
     <main className="container mx-auto max-w-7xl p-6 space-y-8">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-            Admin Dashboard
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
           <p className="text-lg text-muted-foreground">
             Manage bookings and view business insights
           </p>

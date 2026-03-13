@@ -49,7 +49,7 @@ export async function sendBookingConfirmationEmail({
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);padding:40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">✨ Booking Confirmed!</h1>
+              <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700;letter-spacing:-0.5px;">Booking Confirmed</h1>
               <p style="margin:8px 0 0;color:#c7d2fe;font-size:15px;">Your wellness journey begins now</p>
             </td>
           </tr>
@@ -92,7 +92,7 @@ export async function sendBookingConfirmationEmail({
                 If you need to reschedule or have any questions, please contact us at least 24 hours before your appointment.
               </p>
               <p style="margin:0;color:#6b7280;font-size:14px;">
-                We'll see you soon! 🌿
+                We will see you soon.
               </p>
             </td>
           </tr>
@@ -115,7 +115,7 @@ export async function sendBookingConfirmationEmail({
   const { data, error } = await resend.emails.send({
     from: process.env.EMAIL_FROM ?? "Serene Wellness <onboarding@resend.dev>",
     to: customerEmail,
-    subject: `✅ Booking Confirmed: ${serviceName} on ${format(new Date(bookingDate), "MMM d")}`,
+    subject: `Booking Confirmed: ${serviceName} on ${format(new Date(bookingDate), "MMM d")}`,
     html,
   });
 

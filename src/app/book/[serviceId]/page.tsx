@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, Star } from "lucide-react";
+import { ArrowLeft, Check, Clock, Star } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,7 +23,7 @@ export async function generateMetadata({
   if (!service) return { title: "Service Not Found" };
   return {
     title: `Book ${service.name} | Serene Wellness`,
-    description: `Reserve your ${service.name} session — ${formatDuration(service.duration)} for ${formatCurrency(service.price)}.`,
+    description: `Reserve your ${service.name} session - ${formatDuration(service.duration)} for ${formatCurrency(service.price)}.`,
   };
 }
 
@@ -94,7 +94,7 @@ export default async function BookPage({ params }: BookPageProps) {
                 </Badge>
               </div>
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
                   {service.name}
                 </h1>
                 <p className="text-lg text-muted-foreground leading-relaxed">
@@ -131,26 +131,26 @@ export default async function BookPage({ params }: BookPageProps) {
               <Separator />
               <ul className="space-y-3 text-sm">
                 <li className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-5 h-5 bg-green-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-green-500 text-xs font-bold">✓</span>
+                  <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3 text-primary" />
                   </div>
                   Instant booking confirmation
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-5 h-5 bg-blue-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-blue-500 text-xs font-bold">✓</span>
+                  <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3 text-primary" />
                   </div>
                   Secure payment via Stripe
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-5 h-5 bg-amber-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-amber-500 text-xs font-bold">✓</span>
+                  <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3 text-primary" />
                   </div>
                   Free cancellation (24h notice)
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-5 h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                    <span className="text-purple-500 text-xs font-bold">✓</span>
+                  <div className="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center">
+                    <Check className="h-3 w-3 text-primary" />
                   </div>
                   Email confirmation sent
                 </li>

@@ -129,7 +129,7 @@ export default async function ConfirmationPage({
 
             {/* Status pill */}
             <div className="rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-3 py-2 text-xs text-amber-700 dark:text-amber-400 text-center">
-              Status: <strong>Pending payment</strong> — your slot is reserved
+              Status: <strong>Pending payment</strong> - your slot is reserved
               for 30 minutes
             </div>
           </div>
@@ -142,10 +142,10 @@ export default async function ConfirmationPage({
             </code>
           </p>
 
-          {/* CTA — will become "Complete Payment" once Stripe is wired */}
+          {/* CTA will become "Complete Payment" once Stripe is wired */}
           <div className="space-y-3">
             <Button className="w-full h-11 font-semibold" disabled>
-              Complete Payment (Stripe — coming next)
+              Complete Payment (Stripe coming next)
             </Button>
             <Link
               href="/"

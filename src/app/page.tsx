@@ -1,7 +1,7 @@
 import { Header } from "@/components/header";
 import { ServiceCard } from "@/components/service-card";
 import { prisma } from "@/lib/prisma";
-import { Sparkles } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +58,12 @@ export default async function HomePage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-primary/5 to-background border-b border-border/50">
+        <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 to-background border-b border-border/50">
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 text-center relative">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 text-sm text-primary font-semibold mb-8 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105">
-              <Sparkles className="h-4 w-4" />
-              Premium Wellness Treatments
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 backdrop-blur-sm px-4 py-2 text-sm text-primary font-semibold mb-8 shadow-sm">
+              <ShieldCheck className="h-4 w-4" />
+              Trusted booking platform
             </div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground leading-tight mb-8">
               Restore Your{" "}
@@ -76,15 +76,15 @@ export default async function HomePage() {
               Secure payment, instant confirmation, and a rejuvenating
               experience await.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
-                <span className="text-green-500">✓</span> Instant booking
+            <div className="mt-8 flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+              <span className="bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                Instant booking
               </span>
-              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
-                <span className="text-blue-500">🔒</span> Secure payment
+              <span className="bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                Secure payment
               </span>
-              <span className="flex items-center gap-2 bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
-                <span className="text-purple-500">📧</span> Email confirmation
+              <span className="bg-background/80 backdrop-blur-sm rounded-full px-4 py-2 border border-border/50 shadow-sm">
+                Email confirmation
               </span>
             </div>
           </div>
@@ -106,9 +106,6 @@ export default async function HomePage() {
           {services.length === 0 ? (
             <div className="text-center py-32">
               <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-3xl border border-border/50 p-12 max-w-md mx-auto">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="h-8 w-8 text-muted-foreground" />
-                </div>
                 <p className="text-xl font-medium text-foreground mb-2">
                   No services available yet
                 </p>

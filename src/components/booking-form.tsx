@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertCircle,
   CalendarDays,
   Clock,
   Loader2,
@@ -118,13 +119,13 @@ export function BookingForm({ service }: BookingFormProps) {
       // Show success and redirect
       toast.dismiss(toastId);
       toast.success("Redirecting to checkout...", {
-        description: "Taking you to Stripe's secure payment page",
+        description: "Taking you to Stripe secure payment page",
       });
 
       // Hard-navigate to Stripe's hosted checkout page.
       // router.push() won't work here because it's an external URL.
       window.location.href = data.url;
-    } catch (error) {
+    } catch {
       toast.dismiss(toastId);
       const errorMsg =
         "Network error. Please check your connection and try again.";
@@ -188,7 +189,7 @@ export function BookingForm({ service }: BookingFormProps) {
         />
         {errors.customerName && (
           <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-            <span className="text-destructive">⚠️</span>
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{errors.customerName.message}</p>
           </div>
         )}
@@ -218,13 +219,13 @@ export function BookingForm({ service }: BookingFormProps) {
         />
         {errors.customerEmail && (
           <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-            <span className="text-destructive">⚠️</span>
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{errors.customerEmail.message}</p>
           </div>
         )}
       </div>
 
-      {/* Date + Time — side by side on sm+ */}
+      {/* Date + Time - side by side on sm+ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Preferred Date */}
         <div className="space-y-3">
@@ -250,7 +251,7 @@ export function BookingForm({ service }: BookingFormProps) {
           />
           {errors.bookingDate && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-              <span className="text-destructive">⚠️</span>
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <p>{errors.bookingDate.message}</p>
             </div>
           )}
@@ -294,7 +295,7 @@ export function BookingForm({ service }: BookingFormProps) {
           </Select>
           {errors.bookingTime && (
             <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-              <span className="text-destructive">⚠️</span>
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <p>{errors.bookingTime.message}</p>
             </div>
           )}
@@ -316,14 +317,14 @@ export function BookingForm({ service }: BookingFormProps) {
         <Textarea
           id="notes"
           rows={4}
-          placeholder="Any health conditions, preferences, or special requests we should know about…"
+          placeholder="Any health conditions, preferences, or special requests we should know about..."
           aria-invalid={!!errors.notes}
           className="text-base resize-none transition-all duration-200 focus:border-primary focus:ring-primary/30 hover:border-border"
           {...register("notes")}
         />
         {errors.notes && (
           <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-            <span className="text-destructive">⚠️</span>
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <p>{errors.notes.message}</p>
           </div>
         )}
@@ -336,7 +337,7 @@ export function BookingForm({ service }: BookingFormProps) {
           className="rounded-xl border border-destructive/30 bg-destructive/10 backdrop-blur-sm px-6 py-4 text-sm text-destructive shadow-lg"
         >
           <div className="flex items-center gap-3">
-            <span className="text-lg">🚨</span>
+            <AlertCircle className="h-5 w-5 shrink-0" />
             <div>
               <p className="font-semibold mb-1">Something went wrong</p>
               <p>{serverError}</p>
@@ -355,11 +356,11 @@ export function BookingForm({ service }: BookingFormProps) {
           {isSubmitting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Redirecting to Stripe…</span>
+              <span>Redirecting to Stripe...</span>
             </>
           ) : (
             <>
-              <span>Pay & Book — {formatCurrency(service.price)}</span>
+              <span>Pay and book - {formatCurrency(service.price)}</span>
             </>
           )}
         </div>
@@ -367,19 +368,19 @@ export function BookingForm({ service }: BookingFormProps) {
 
       <div className="text-center space-y-2">
         <p className="text-sm text-muted-foreground">
-          You’ll be taken to Stripe’s secure checkout. Your slot is{" "}
+          You will be taken to Stripe secure checkout. Your slot is{" "}
           <strong className="text-foreground">reserved</strong> once payment is
           complete.
         </p>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="text-green-500">✓</span> SSL encrypted
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1">
+            SSL encrypted
           </span>
-          <span className="flex items-center gap-1">
-            <span className="text-blue-500">✓</span> PCI compliant
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1">
+            PCI compliant
           </span>
-          <span className="flex items-center gap-1">
-            <span className="text-purple-500">✓</span> Instant confirmation
+          <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1">
+            Instant confirmation
           </span>
         </div>
       </div>

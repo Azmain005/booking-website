@@ -55,14 +55,14 @@ function formatBookingTime(date: Date) {
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams;
 
-  // ── Guard: session_id must look like a real Stripe session ID ──────────────
+  // Guard: session_id must look like a real Stripe session ID.
   // This prevents passing arbitrary strings to the Stripe API.
   if (!sessionId || !/^cs_(test|live)_/.test(sessionId)) {
     notFound();
   }
 
-  // ── Retrieve the Stripe session server-side ───────────────────────────────
-  // We use our server-side secret key. This is safe — STRIPE_SECRET_KEY is
+  // Retrieve the Stripe session server-side.
+  // We use our server-side secret key. This is safe - STRIPE_SECRET_KEY is
   // never exposed to the browser.
   let session: Awaited<ReturnType<typeof stripe.checkout.sessions.retrieve>>;
   try {
@@ -72,7 +72,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     notFound();
   }
 
-  // ── Look up our booking from Stripe metadata ──────────────────────────────
+  // Look up our booking from Stripe metadata.
   const bookingId = session.metadata?.bookingId;
   if (!bookingId) notFound();
 
@@ -88,11 +88,11 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   if (!booking) notFound();
 
   // payment_status reflects what Stripe knows right now.
-  // Our DB status may still say PENDING until the webhook fires —
+  // Our DB status may still say PENDING until the webhook fires -
   // that is intentional and expected.
   const isPaid = session.payment_status === "paid";
 
-  // ── Fallback reconciliation ───────────────────────────────────────────────
+  // Fallback reconciliation.
   // If the webhook is delayed/misconfigured, reconcile here using Stripe's
   // server-side session lookup. This keeps admin/payment state consistent and
   // ensures the confirmation email can still be delivered.
@@ -209,13 +209,13 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
             <div className="space-y-4">
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                {isPaid ? "Payment received!" : "Payment is processing…"}
+                {isPaid ? "Payment received!" : "Payment is processing..."}
               </h1>
 
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
                 {isPaid
-                  ? "Thank you — your booking is being confirmed. You'll receive a confirmation email shortly."
-                  : "Your payment is processing. We'll send a confirmation email once it's complete."}
+                  ? "Thank you. Your booking is being confirmed. You will receive a confirmation email shortly."
+                  : "Your payment is processing. We will send a confirmation email once it is complete."}
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
           {/* Booking summary card */}
           <div className="rounded-2xl border bg-gradient-to-br from-card to-card/80 shadow-xl p-8 space-y-6">
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              📅 Booking Summary
+              Booking summary
             </h2>
 
             <div className="space-y-6 text-sm">
@@ -309,7 +309,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             href="/"
             className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-xl border-2 border-border bg-background px-6 text-base font-semibold whitespace-nowrap transition-all duration-200 outline-none select-none hover:bg-muted hover:border-primary/50 hover:text-foreground focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/20 shadow-sm hover:shadow-md"
           >
-            ← Back to services
+            Back to services
           </Link>
         </div>
       </main>
