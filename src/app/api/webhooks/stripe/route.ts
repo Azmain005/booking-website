@@ -115,13 +115,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ received: true }, { status: 200 });
       }
 
-      // Fast-path: already confirmed
-      if (booking.status === "CONFIRMED") {
-        console.log(
-          `[webhook] Booking ${bookingId} already confirmed, skipping`,
-        );
-        return NextResponse.json({ received: true }, { status: 200 });
-      }
+      const alreadyConfirmed = booking.status === "CONFIRMED";
 
       // ── 6. Extract payment details ──────────────────────────────────────────
       //
@@ -146,8 +140,9 @@ export async function POST(request: NextRequest) {
         where: {
           id: bookingId,
           status: "PENDING",
-          // Extra safety: only confirm if this booking was created with this session
-          stripeSessionId: session.id,
+          // Prefer matching the session when present, but allow null to avoid
+          // a rare race (or partial write) preventing confirmation forever.
+          OR: [{ stripeSessionId: session.id }, { stripeSessionId: null }],
         },
         data: {
           status: "CONFIRMED",
@@ -156,38 +151,57 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      if (updated.count === 0) {
+      const confirmedNow = updated.count === 1;
+      if (confirmedNow) {
+        console.log(`[webhook] Booking ${bookingId} confirmed successfully`);
+      } else if (!alreadyConfirmed) {
         console.log(
           `[webhook] Booking ${bookingId} not updated (already processed, cancelled, or session mismatch).`,
         );
-        return NextResponse.json({ received: true }, { status: 200 });
       }
-
-      console.log(`[webhook] Booking ${bookingId} confirmed successfully`);
 
       // ── 8. Send confirmation email ───────────────────────────────────────────
       //
-      // Fire-and-forget. If email fails, we still return 200 to Stripe because
-      // the booking is CONFIRMED in our DB (the authoritative source).
-      // You can add retry logic or a separate job queue if email delivery
-      // is mission-critical.
+      // IMPORTANT (serverless): do not fire-and-forget — the runtime may freeze
+      // immediately after returning a response. Await the send so it actually
+      // gets a chance to run.
       //
-      console.log(
-        `[webhook] Sending confirmation email for booking ${bookingId}`,
-      );
-      sendBookingConfirmationEmail({
-        customerName: booking.customerName,
-        customerEmail: booking.customerEmail,
-        serviceName: booking.service.name,
-        bookingDate: booking.bookingDate,
-        amount: amountPaid,
-        bookingId: booking.id,
-      }).catch((emailError) => {
-        console.error(
-          `[webhook] Failed to send confirmation email for booking ${bookingId}:`,
-          emailError,
+      // Only send if we haven't sent it yet.
+      // We re-fetch the emailSent flag if we didn't confirm in this request,
+      // because the booking may already be CONFIRMED from a previous attempt.
+      const current = confirmedNow
+        ? { confirmationEmailSentAt: booking.confirmationEmailSentAt }
+        : await prisma.booking.findUnique({
+            where: { id: bookingId },
+            select: { confirmationEmailSentAt: true },
+          });
+
+      const shouldSendEmail = !current?.confirmationEmailSentAt;
+      if (shouldSendEmail && (confirmedNow || alreadyConfirmed)) {
+        console.log(
+          `[webhook] Sending confirmation email for booking ${bookingId}`,
         );
-      });
+        try {
+          await sendBookingConfirmationEmail({
+            customerName: booking.customerName,
+            customerEmail: booking.customerEmail,
+            serviceName: booking.service.name,
+            bookingDate: booking.bookingDate,
+            amount: amountPaid,
+            bookingId: booking.id,
+          });
+
+          await prisma.booking.update({
+            where: { id: bookingId },
+            data: { confirmationEmailSentAt: new Date() },
+          });
+        } catch (emailError) {
+          console.error(
+            `[webhook] Failed to send confirmation email for booking ${bookingId}:`,
+            emailError,
+          );
+        }
+      }
 
       return NextResponse.json({ received: true }, { status: 200 });
     } catch (error) {

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Header } from "@/components/header";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { cn, formatCurrency, formatDuration } from "@/lib/utils";
@@ -90,6 +91,95 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   // Our DB status may still say PENDING until the webhook fires —
   // that is intentional and expected.
   const isPaid = session.payment_status === "paid";
+
+  // ── Fallback reconciliation ───────────────────────────────────────────────
+  // If the webhook is delayed/misconfigured, reconcile here using Stripe's
+  // server-side session lookup. This keeps admin/payment state consistent and
+  // ensures the confirmation email can still be delivered.
+  if (isPaid && booking.status === "PENDING") {
+    const paymentIntentId =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : (session.payment_intent?.id ?? null);
+
+    const amountPaid = session.amount_total ?? booking.service.price;
+
+    const updated = await prisma.booking.updateMany({
+      where: {
+        id: booking.id,
+        status: "PENDING",
+      },
+      data: {
+        status: "CONFIRMED",
+        stripePaymentIntentId: paymentIntentId,
+        amountPaid,
+      },
+    });
+
+    // Send email only once.
+    if (updated.count === 1 && !booking.confirmationEmailSentAt) {
+      try {
+        await sendBookingConfirmationEmail({
+          customerName: booking.customerName,
+          customerEmail: booking.customerEmail,
+          serviceName: booking.service.name,
+          bookingDate: booking.bookingDate,
+          amount: amountPaid,
+          bookingId: booking.id,
+        });
+
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { confirmationEmailSentAt: new Date() },
+        });
+      } catch (emailError) {
+        console.error(
+          `[success] Failed to send confirmation email for booking ${booking.id}:`,
+          emailError,
+        );
+      }
+    }
+  }
+
+  // If the webhook confirmed payment but email failed, allow a single retry
+  // when the customer lands on the success page.
+  if (
+    isPaid &&
+    booking.status === "CONFIRMED" &&
+    !booking.confirmationEmailSentAt
+  ) {
+    const paymentIntentId =
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : (session.payment_intent?.id ?? null);
+
+    const amountPaid = session.amount_total ?? booking.service.price;
+
+    try {
+      await sendBookingConfirmationEmail({
+        customerName: booking.customerName,
+        customerEmail: booking.customerEmail,
+        serviceName: booking.service.name,
+        bookingDate: booking.bookingDate,
+        amount: amountPaid,
+        bookingId: booking.id,
+      });
+
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: {
+          stripePaymentIntentId: paymentIntentId,
+          amountPaid,
+          confirmationEmailSentAt: new Date(),
+        },
+      });
+    } catch (emailError) {
+      console.error(
+        `[success] Failed to send confirmation email retry for booking ${booking.id}:`,
+        emailError,
+      );
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

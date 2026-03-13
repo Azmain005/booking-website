@@ -132,7 +132,7 @@ export function AdminAnalytics({ bookings }: { bookings: AdminBookingRow[] }) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-              Today's Sessions
+              Today&apos;s Sessions
             </p>
             <p className="text-3xl font-bold text-amber-900 dark:text-amber-100">
               {analytics.todaysBookings}

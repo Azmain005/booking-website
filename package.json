@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
+    "db:init": "ts-node --project tsconfig.db.json scripts/db-init.ts",
     "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
